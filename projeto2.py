@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# -*- coding: utf-8 -*-
-
 from rastros import *
 from threading import Thread
 from datetime import datetime
@@ -17,6 +15,45 @@ def num_pretas_quadrado(branca, pretas, objectivo):
                                       b[1] <= trcorner[1])])
 
 
+def num_pretas_em_linha_quadrado(branca, pretas, objectivo):
+    blcorner = branca if distancia(branca, (8,1)) < distancia(objectivo, (8,1)) else objectivo
+    trcorner = branca if blcorner == objectivo else objectivo
+    counting = False
+    maxnl = 0;
+    #linhas
+    for i in range(trcorner[0], blcorner[0]+1):
+        nl = 0
+        for j in range(blcorner[1], trcorner[1]):
+            if counting:
+                nl += 1
+            if (i,j) in pretas:
+                counting = True
+            else:
+                counting = False
+                maxnl = nl if nl > maxnl else maxnl
+                nl = 0
+    # colunas
+    for j in range(blcorner[1], trcorner[1]+1):
+        nl = 0
+        for i in range(trcorner[0], blcorner[0]):
+            if counting:
+                nl += 1
+            if (i,j) in pretas:
+                counting = True
+            else:
+                counting = False
+                maxnl = nl if nl > maxnl else maxnl
+                nl = 0
+    return maxnl
+    
+
+def pretas_vert_horiz_adjacentes(white, blacks, fullboard):
+    alladjacent = [(white[0]+a, white[1]) for a in [-1,1]] + \
+                  [(white[0], white[1]+a) for a in [-1,1]]
+    return len([p for p in alladjacent
+                if p in blacks and p in fullboard])
+        
+
 # maior é melhor!
 def fun_aval_52(estado, jogador):
     if estado.terminou == 1:
@@ -28,7 +65,10 @@ def fun_aval_52(estado, jogador):
         score = 0;
         score += 7 - distancia(estado.white, obj)
         #score += 64 - num_pretas_quadrado(estado.white, estado.blacks, obj)
-        score += 100*num_pretas_quadrado(estado.white, estado.blacks, (8,1) if obj==(1,8) else (1,8))
+        #score += num_pretas_quadrado(estado.white, estado.blacks, (8,1) if obj==(1,8) else (1,8))
+        # score += 64 - num_pretas_em_linha_quadrado(estado.white, estado.blacks, obj)
+        # score += num_pretas_em_linha_quadrado(estado.white, estado.blacks, (8,1) if obj==(1,8) else (1,8))
+        score += pretas_vert_horiz_adjacentes(estado.white, estado.blacks, estado.fullboard)
         return score
 
 
@@ -65,6 +105,12 @@ if __name__ == "__main__":
     # print("pretas="+str(num_pretas_quadrado((4,5), [(7,1), (8,2), (2,6), (2,1)], (1,8))))
     # print("pretas="+str(num_pretas_quadrado((1,1), [(7,1), (8,2), (2,6), (2,1)], (8,1))))
     # print("pretas="+str(num_pretas_quadrado((8,1), [(7,1), (8,2), (2,6), (2,1)], (1,8))))
+    # sys.exit(0)
+    
+    # print("pretas="+str(num_pretas_em_linha_quadrado((4,5), [(7,1), (7,2), (8,2), (2,6), (2,1)], (8,1))))
+    # print("pretas="+str(num_pretas_em_linha_quadrado((4,5), [(7,1), (7,2), (8,2), (2,6), (2,1)], (1,8))))
+    # print("pretas="+str(num_pretas_em_linha_quadrado((1,1), [(7,1), (7,2), (8,2), (2,6), (2,1)], (8,1))))
+    # print("pretas="+str(num_pretas_em_linha_quadrado((8,1), [(7,1), (7,2), (8,2), (2,6), (2,1)], (1,8))))
     # sys.exit(0)
     
     # dt0 = datetime.now();
