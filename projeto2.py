@@ -48,8 +48,8 @@ def num_pretas_em_linha_quadrado(branca, pretas, objectivo):
     
 
 def pretas_vert_horiz_adjacentes(white, blacks, fullboard):
-    alladjacent = [(white[0]+a, white[1]) for a in [-1,1]] + \
-                  [(white[0], white[1]+a) for a in [-1,1]]
+    alladjacent = [(white[0]+a, white[1]) for a in [-2,-1,1,2]] + \
+                  [(white[0], white[1]+a) for a in [-2,-1,1,2]]
     return len([p for p in alladjacent
                 if p in blacks and p in fullboard])
         
