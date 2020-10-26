@@ -186,7 +186,7 @@ def alphabeta_cutoff_search_new(state, game, d=4, cutoff_test=None, eval_fn=None
         movimentos = game.actions(state)  ## jb
         random.shuffle(movimentos)        ## para dar variabilidade aos jogos
         for a in movimentos:              ##
-            alpha = max(v, min_value(game.result(state, a),
+            alpha = max(alpha, min_value(game.result(state, a),
                                  alpha, beta, depth + 1))
             if alpha >= beta:
                 return alpha
@@ -200,7 +200,7 @@ def alphabeta_cutoff_search_new(state, game, d=4, cutoff_test=None, eval_fn=None
         movimentos = game.actions(state)  ## jb
         random.shuffle(movimentos)        ## para dar variabilidade aos jogos
         for a in movimentos:              ##
-            beta = min(v, max_value(game.result(state, a),
+            beta = min(beta, max_value(game.result(state, a),
                                  alpha, beta, depth + 1))
             if beta <= alpha:
                 return beta
