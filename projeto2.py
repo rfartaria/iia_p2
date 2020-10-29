@@ -22,7 +22,29 @@ def string_to_tabuleiro(strt):
             if (line[j] == '@'):
                 blacks += [(i+1,j+1)]
         i += 1
-    return (white, blacks)
+    return (white, set(blacks))
+
+
+def tabuleiro_to_string(white, blacks):
+    s = " 12345678\n"
+    for i in range(1, 9):
+        s += str(i)
+        for j in range(1, 9):
+            s += "@" if (i,j) in blacks else "o" if (i,j)==white else "."
+        s += str(i)+"\n"
+    s += " 12345678 "
+    return s
+
+
+def moves_to_string(iwhite, iblacks, moves):
+    st = tabuleiro_to_string(iwhite, iblacks)
+    lines = [[c for c in l] for l in st.splitlines()]
+    n = 0
+    for m in moves:
+        c = "2" if n%2==0 else "5"
+        lines[m[0]] = lines[m[0]][:m[1]] + ["\u001b[38;5;" + c + "m" + str(n) + "\u001b[0m"] + lines[m[0]][m[1]+1:]
+        n = (n+1) % 10
+    return "\n".join(["".join(l) for l in lines])
 
 
 def astar_search_limited(problem, h=None, depth=5, maxNodes=1000000):
@@ -152,6 +174,19 @@ def num_pretas_quadrado(branca, pretas, objectivo):
                                       b[1] >= blcorner[1] and \
                                       b[1] <= trcorner[1])])
 
+def num_pretas_camadas(branca, pretas, fullboard, camadas):
+    casas = []
+    for c in camadas:
+        for i in [branca[0]-c, branca[0]+c]:
+            for j in range(branca[1]-c, branca[1]+c+1):
+                casas.append((i,j))
+        for j in [branca[1]-c, branca[1]+c]:
+            for i in range(branca[0]-c, branca[0]+c+1):
+                casas.append((i,j))
+    casas = set(casas)
+    return (len(casas & pretas), len(casas & fullboard))
+
+
 
 def num_pretas_em_linha_quadrado(branca, pretas, objectivo):
     blcorner = branca if distancia(branca, (8,1)) < distancia(objectivo, (8,1)) else objectivo
@@ -212,22 +247,38 @@ def fun_aval_52(estado, jogador):
         obj = (8, 1) if jogador == "S" else (1, 8)
         obja = (8,1) if obj==(1,8) else (1,8)
         score = 0;
-        score += (7 - distancia(estado.white, obj)) / 7
+        
+        d = distancia(estado.white, obj)
+        score += (7 - d) / 7
+        
         # p = ProblemaRastros(initial=estado, final=obj)
-        # res_astar = astar_search_limited(problem=p,h=p.h1, depth=5, maxNodes=25)
-        # score += 64 - res_astar.path_cost
+        # res_astar = astar_search_limited(problem=p,h=p.h1, depth=7, maxNodes=25)
+        # score += (64 - max(res_astar.path_cost))
         #score += 64 - num_pretas_quadrado(estado.white, estado.blacks, obj)
         #score += num_pretas_quadrado(estado.white, estado.blacks, obja)
         #score += 64 - num_pretas_em_linha_quadrado(estado.white, estado.blacks, obj)
         #score += num_pretas_em_linha_quadrado(estado.white, estado.blacks, obja)
         #score += pretas_vert_horiz_adjacentes(estado.white, estado.blacks, estado.fullboard)
+        
         camadas = [1,2,3]
-        score = pretas_vert_horiz_obliq_adjacentes(estado.white, estado.blacks, estado.fullboard, obja, camadas) / 12
+        score += pretas_vert_horiz_obliq_adjacentes(estado.white, estado.blacks, estado.fullboard, obja, camadas) / 12
+        #score -= pretas_vert_horiz_obliq_adjacentes(estado.white, estado.blacks, estado.fullboard, obj, camadas) / 12
+        
         if existe_linha_ate_destino(estado.white, estado.blacks, obj):
-            score -= 1
+            score -= 1 #abs(estado.white[1]-obj[1])
         if existe_coluna_ate_destino(estado.white, estado.blacks, obj):
-            score -= 1
+            score -= 1 #abs(estado.white[0]-obj[0])
+        if existe_linha_ate_destino(estado.white, estado.blacks, obja):
+            score += 1 #abs(estado.white[1]-obja[1])
+        if existe_coluna_ate_destino(estado.white, estado.blacks, obja):
+            score += 1 #abs(estado.white[0]-obja[0])
+
         #score += pretas_vert_horiz_obliq_adjacentes(estado.white, estado.blacks, estado.fullboard, obja, [1])
+        # npc1, nc1 = num_pretas_camadas(estado.white, estado.blacks, estado.fullboard, [1])
+        # score += 1 if nc1 == npc1 else 0
+        # if nc1 != npc1:
+        #     npc2, nc2 = num_pretas_camadas(estado.white, estado.blacks, estado.fullboard, [2])
+        #     score += 1 if nc2 == npc2 and  nc1-npc1%2==1 else 0
         return score
 
 
@@ -236,18 +287,18 @@ specialOne = Jogador("SpecialOne",
                   alphabeta_cutoff_search_new(state,game,depth_for_all,eval_fn=fun_aval_52))
 
     
-def sample_jogaRastrosNN(jogadorA, jogadorB, nsec=1):
+def sample_jogaRastrosNN(jogadorA, jogadorB, nsec=1, njogos=10):
     ### devolve uma lista de tuplos da forma (j1, j2, (lista de jogadas, vencedor))
     lista_jogos=[]
     k = 0
-    for i in range(50):
+    for i in range(njogos):
         k += 1
         dt0 = datetime.now()
         resultado_jogo = (jogadorA.nome, jogadorB.nome, jogaRastros11com_timeout(jogadorA,jogadorB, nsec))
         lista_jogos.append(resultado_jogo)
         dt1 = datetime.now()
         print("jogo "+str(k)+": "+str(dt1-dt0)+"   "+str((resultado_jogo[0], resultado_jogo[1], resultado_jogo[2][1])))
-    for i in range(50):
+    for i in range(njogos):
         k += 1
         dt0 = datetime.now()
         resultado_jogo = (jogadorB.nome, jogadorA.nome, jogaRastros11com_timeout(jogadorB,jogadorA, nsec))
@@ -256,6 +307,33 @@ def sample_jogaRastrosNN(jogadorA, jogadorB, nsec=1):
         print("jogo "+str(k)+": "+str(dt1-dt0)+"   "+str((resultado_jogo[0], resultado_jogo[1], resultado_jogo[2][1])))
     return lista_jogos
 
+
+def jogaRastros11com_timeout_posini(jog1, jog2, nsec, posini):
+    ### jog1 e jog2 são jogadores com funções que dado um estado do jogo devolvem a jogada que escolheram
+    ### devolve uma lista de jogadas e o resultado 1 se S ganha
+    game = Rastros()
+    game.initial = posini
+    estado=game.initial
+    proxjog = jog1
+    lista_jogadas=[]
+    while not game.terminal_test(estado):
+        try:
+            ReturnedValue = func_timeout(nsec, proxjog.fun, args=(game, estado))
+        except FunctionTimedOut:
+            print("pim!", proxjog.nome)
+            ReturnedValue = None    
+        jogada = ReturnedValue
+        if jogada == None:
+            estado.terminou = 1 if proxjog==jog2 else -1 # se norte deu timeout ganha sul e vice-versa 
+            return (lista_jogadas, estado.terminou)
+        else:
+            estado=game.result(estado,jogada)
+            lista_jogadas.append((proxjog.nome, jogada))
+            proxjog = jog2 if proxjog == jog1 else jog1
+    return (lista_jogadas, estado.terminou)
+
+
+# para threads
 ljogos = {};
 
 def th_worker(name):
@@ -285,6 +363,7 @@ if __name__ == "__main__":
     # print("pretas="+str(num_pretas_em_linha_quadrado((8,1), [(7,1), (7,2), (8,2), (2,6), (2,1)], (1,8))))
     # sys.exit(0)
     
+    
     ############# Tabuleiros ##########
     
     # s = """  12345678
@@ -296,6 +375,12 @@ if __name__ == "__main__":
     #         6.@@.....
     #         7........
     #         8........"""
+    # tabuleiro = string_to_tabuleiro(s)
+    # jogo = jogaRastros11com_timeout_posini(basilio, specialOne, 10, 
+    #            EstadoRastros(to_move="S", white=tabuleiro[0], blacks=tabuleiro[1]))
+    # print(moves_to_string(tabuleiro[0],tabuleiro[1],[i[1] for i in jogo[0]]))
+    # sys.exit(0)
+    
     
     # s1 = """  12345678
     #         1........
@@ -425,7 +510,7 @@ if __name__ == "__main__":
     # th2.join();
     # campeonato = [item for key in ljogos for item in ljogos[key]];
     
-    campeonato = sample_jogaRastrosNN(basilio, specialOne, nsec=10)
+    campeonato = sample_jogaRastrosNN(basilio, specialOne, nsec=10, njogos=25)
 
     dt1 = datetime.now()        
     print(dt1-dt0);
