@@ -238,11 +238,15 @@ def pretas_vert_horiz_obliq_adjacentes(white, blacks, fullboard, obj, camadas):
 
 
 # maior é melhor!
-def fun_aval_52(estado, jogador):
+def fun_aval_52(estado, jogador, dicScoresOut=None):
     if estado.terminou == 1:
-        return 10 if jogador == "S" else -10
+        score = 10 if jogador == "S" else -10
+        if dicScoresOut!=None: dicScoresOut['final'] = score
+        return score
     elif estado.terminou == -1:
-        return 10 if jogador == "N" else -10
+        score = 10 if jogador == "N" else -10 
+        if dicScoresOut!=None: dicScoresOut['final'] = score
+        return score
     else:
         obj = (8, 1) if jogador == "S" else (1, 8)
         obja = (8,1) if obj==(1,8) else (1,8)
@@ -250,6 +254,7 @@ def fun_aval_52(estado, jogador):
         
         d = distancia(estado.white, obj)
         score += (7 - d) / 7
+        if dicScoresOut!=None: dicScoresOut['distancia'] = score
         
         # p = ProblemaRastros(initial=estado, final=obj)
         # res_astar = astar_search_limited(problem=p,h=p.h1, depth=7, maxNodes=25)
@@ -261,27 +266,38 @@ def fun_aval_52(estado, jogador):
         #score += pretas_vert_horiz_adjacentes(estado.white, estado.blacks, estado.fullboard)
         
         camadas = [1,2,3]
-        score += pretas_vert_horiz_obliq_adjacentes(estado.white, estado.blacks, estado.fullboard, obja, camadas) / 12
+        v = pretas_vert_horiz_obliq_adjacentes(estado.white, estado.blacks, estado.fullboard, obja, camadas) / 12
+        if dicScoresOut!=None: dicScoresOut['pretas_vert_horiz_obliq_adjacentes'] = v
+        score += v
+        
         #score -= pretas_vert_horiz_obliq_adjacentes(estado.white, estado.blacks, estado.fullboard, obj, camadas) / 12
         
         if existe_linha_ate_destino(estado.white, estado.blacks, obj):
             score += -1
+            if dicScoresOut!=None: dicScoresOut['existe_linha_ate_destino'] = -1
             # score += abs(estado.white[1]-obj[1])/7
         if existe_coluna_ate_destino(estado.white, estado.blacks, obj):
             score += -1
+            if dicScoresOut!=None: dicScoresOut['existe_coluna_ate_destino'] = -1
             # score += abs(estado.white[0]-obj[0])/7
         if existe_linha_ate_destino(estado.white, estado.blacks, obja):
             score += 1
+            if dicScoresOut!=None: dicScoresOut['existe_linha_ate_destino a'] = 1
             # score += (7-abs(estado.white[1]-obja[1]))/7
         if existe_coluna_ate_destino(estado.white, estado.blacks, obja):
             score += 1
+            if dicScoresOut!=None: dicScoresOut['existe_coluna_ate_destino a'] = 1
             # score += (7-abs(estado.white[0]-obja[0]))/7
 
         npc1, nc1 = num_pretas_camadas(estado.white, estado.blacks, estado.fullboard, [1])
-        score += 1 if nc1 == npc1 else 0
+        v = 1 if nc1 == npc1 else 0
+        if dicScoresOut!=None: dicScoresOut['num_pretas_camadas 1'] = v
+        score += v
         if nc1 != npc1:
             npc2, nc2 = num_pretas_camadas(estado.white, estado.blacks, estado.fullboard, [2])
-            score += 1 if nc2 == npc2 and  nc1-npc1%2==1 else 0
+            v = 1 if nc2 == npc2 and  nc1-npc1%2==1 else 0
+            if dicScoresOut!=None: dicScoresOut['num_pretas_camadas 2'] = v
+            score += v
         return score
 
 
@@ -336,13 +352,18 @@ def jogaRastros11com_timeout_posini(jog1, jog2, nsec, posini):
     return (lista_jogadas, estado.terminou)
 
 
-def mostraJogo52(inicial, listajog, verbose = False, step_by_step=False):
+def mostraJogo52(inicial, listajog, verbose = False, step_by_step=False, show_scores=False):
     j = Rastros()
     j.initial = inicial
     estado = j.initial
     for jog in listajog:
         if verbose:
             j.display(estado)
+            if show_scores:
+                d = {}
+                result = fun_aval_52(estado, estado.to_move, d)
+                for k in d:
+                    print(str(k) + ": " + str(d[k]))
         if step_by_step:
             input()
         estado=j.result(estado,jog[1])
@@ -350,6 +371,14 @@ def mostraJogo52(inicial, listajog, verbose = False, step_by_step=False):
     if verbose:
         j.display(estado)
     print('{}'.format("Ganhou S" if estado.terminou == 1 else "Ganhou N" if estado.terminou == -1 else "Empate"))
+
+
+def jogo_a_partir_de_posicao():
+    tabuleiro = string_to_tabuleiro(s)
+    inicial = EstadoRastros(to_move="S", white=tabuleiro[0], blacks=tabuleiro[1])
+    jogo = jogaRastros11com_timeout_posini(basilio, specialOne, 10, inicial)
+    print(moves_to_string(tabuleiro[0],tabuleiro[1],[i[1] for i in jogo[0]]))
+    mostraJogo52(inicial, jogo[0], verbose = True, show_scores=True)
 
 
 # para threads
@@ -385,7 +414,7 @@ if __name__ == "__main__":
     
     ############# Tabuleiros ##########
     
-    #random.seed(1234567)
+    random.seed(1234567)
     s = """  12345678
             1........
             2........
@@ -395,11 +424,7 @@ if __name__ == "__main__":
             6.@@.....
             7........
             8........"""
-    tabuleiro = string_to_tabuleiro(s)
-    jogo = jogaRastros11com_timeout_posini(basilio, specialOne, 10, 
-                EstadoRastros(to_move="S", white=tabuleiro[0], blacks=tabuleiro[1]))
-    print(moves_to_string(tabuleiro[0],tabuleiro[1],[i[1] for i in jogo[0]]))
-    mostraJogo52(tabuleiro, jogo[0], verbose = True)
+    jogo_a_partir_de_posicao()
     sys.exit(0)
     
     
@@ -531,6 +556,7 @@ if __name__ == "__main__":
     # th2.join();
     # campeonato = [item for key in ljogos for item in ljogos[key]];
     
+    random.seed()
     campeonato = sample_jogaRastrosNN(basilio, specialOne, nsec=10, njogos=50)
 
     dt1 = datetime.now()        
