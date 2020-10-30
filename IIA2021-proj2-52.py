@@ -63,7 +63,7 @@
 # 1. Se as casas envolventes na primeira camada são pretas, então ganhou, e devolve o mesmo "score" que para a vitória.
 # 2. Se as casas envolventes na segunda camada são pretas, então é favorável se o número de casas é ímpar. Ou seja, o jogador está encurralado, mas tem um número de casas disponíveis para terminar numa jogada em que é o adversário que fica sem jogadas.
 
-# In[ ]:
+# In[7]:
 
 
 
@@ -186,7 +186,7 @@ def fun_aval_52(estado, jogador):
 
 # ## Demonstração 20 jogos: 10+10
 
-# In[ ]:
+# In[8]:
 
 
 from datetime import datetime
@@ -267,7 +267,7 @@ for jog in classificacao:
 # 2. Mostrar caminho percorrido num só tabuleiro
 # 3. Registar os scores individuais de cada heurística
 
-# In[ ]:
+# In[9]:
 
 
 # -*- coding: utf-8 -*-
@@ -407,7 +407,7 @@ def jogo_a_partir_de_posicao():
 # O Basílio começa a jogar segundo a única heurística que tem, isto é, a distância até ao objetivo. De seguida começamos a jogar de forma a afastarmo-nos da coluna e de forma a preencher as casas vazias e isso vai acontecendo ao longo de várias jogadas até se preencher a parte inferior do tabuleiro. Quando esta está preenchida, começamos a jogar de forma a chegarmos ao objetivo.
 # 
 
-# In[ ]:
+# In[10]:
 
 
 s = """  12345678
@@ -435,7 +435,7 @@ mostraJogo52(inicial, jogo[0][:10], verbose = True, show_scores=True)
 # 
 # Nós começamos a jogar. De seguida joga o Basílio, que como se pode reparar começa a jogar de forma a atinigir o seu objetivo considerando apenas a distância. À medida que o jogo se desenrola repara-se que nós tentamos chegar à coluna mas o Basílio corta todos os caminhos para lá chegar.
 
-# In[ ]:
+# In[11]:
 
 
 s = """  12345678
@@ -454,7 +454,7 @@ inicial = EstadoRastros(to_move="S", white=tabuleiro[0], blacks=tabuleiro[1])
 random.seed(1234567)
 jogo = jogaRastros11com_timeout_posini(specialOne, basilio, 10, inicial)
 print(moves_to_string(tabuleiro[0],tabuleiro[1],[i[1] for i in jogo[0]]))
-mostraJogo52(inicial, jogo[0], verbose = True, show_scores=True)
+mostraJogo52(inicial, jogo[0][:10], verbose = True, show_scores=True)
 
 
 # ### Análise de existência de linha até ao objetivo 
@@ -465,7 +465,7 @@ mostraJogo52(inicial, jogo[0], verbose = True, show_scores=True)
 # 
 # 
 
-# In[ ]:
+# In[12]:
 
 
 
@@ -496,7 +496,7 @@ mostraJogo52(inicial, jogo[0][:10], verbose = True, show_scores=True)
 # 
 # 
 
-# In[ ]:
+# In[13]:
 
 
 
@@ -516,7 +516,7 @@ inicial = EstadoRastros(to_move="S", white=tabuleiro[0], blacks=tabuleiro[1])
 random.seed(1234567)
 jogo = jogaRastros11com_timeout_posini(basilio, specialOne, 10, inicial)
 print(moves_to_string(tabuleiro[0],tabuleiro[1],[i[1] for i in jogo[0]]))
-mostraJogo52(inicial, jogo[0], verbose = True, show_scores=True)
+mostraJogo52(inicial, jogo[0][:10], verbose = True, show_scores=True)
 
 
 # ### Análise de maximização de casas pretas no lado adversário
@@ -527,7 +527,7 @@ mostraJogo52(inicial, jogo[0], verbose = True, show_scores=True)
 # 
 # 
 
-# In[ ]:
+# In[14]:
 
 
 s = """  12345678
@@ -546,5 +546,5 @@ inicial = EstadoRastros(to_move="S", white=tabuleiro[0], blacks=tabuleiro[1])
 random.seed(1234567)
 jogo = jogaRastros11com_timeout_posini(basilio, specialOne, 10, inicial)
 print(moves_to_string(tabuleiro[0],tabuleiro[1],[i[1] for i in jogo[0]]))
-mostraJogo52(inicial, jogo[0], verbose = True, show_scores=True)
+mostraJogo52(inicial, jogo[0][:10], verbose = True, show_scores=True)
 
