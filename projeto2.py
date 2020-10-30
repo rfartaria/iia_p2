@@ -238,7 +238,46 @@ def pretas_vert_horiz_obliq_adjacentes(white, blacks, fullboard, obj, camadas):
 
 
 # maior é melhor!
-def fun_aval_52(estado, jogador, dicScoresOut=None):
+def fun_aval_52(estado, jogador):
+    if estado.terminou == 1:
+        score = 10 if jogador == "S" else -10
+        return score
+    elif estado.terminou == -1:
+        score = 10 if jogador == "N" else -10 
+        return score
+    else:
+        obj = (8, 1) if jogador == "S" else (1, 8)
+        obja = (8,1) if obj==(1,8) else (1,8)
+        score = 0;
+        
+        d = distancia(estado.white, obj)
+        score += (7 - d) / 7
+        
+        camadas = [1,2,3]
+        v = pretas_vert_horiz_obliq_adjacentes(estado.white, estado.blacks, estado.fullboard, obja, camadas) / 12
+        score += v
+        
+        if existe_linha_ate_destino(estado.white, estado.blacks, obj):
+            score += -1
+        if existe_coluna_ate_destino(estado.white, estado.blacks, obj):
+            score += -1
+        if existe_linha_ate_destino(estado.white, estado.blacks, obja):
+            score += 1
+        if existe_coluna_ate_destino(estado.white, estado.blacks, obja):
+            score += 1
+
+        npc1, nc1 = num_pretas_camadas(estado.white, estado.blacks, estado.fullboard, [1])
+        v = 10 if nc1 == npc1 else 0
+        score += v
+        if nc1 != npc1:
+            npc2, nc2 = num_pretas_camadas(estado.white, estado.blacks, estado.fullboard, [2])
+            v = 1 if nc2 == npc2 and  nc1-npc1%2==1 else 0
+            score += v
+        return score
+
+
+# maior é melhor!
+def fun_aval_52_completa(estado, jogador, dicScoresOut=None):
     if estado.terminou == 1:
         score = 10 if jogador == "S" else -10
         if dicScoresOut!=None: dicScoresOut['final'] = score
@@ -290,7 +329,7 @@ def fun_aval_52(estado, jogador, dicScoresOut=None):
             # score += (7-abs(estado.white[0]-obja[0]))/7
 
         npc1, nc1 = num_pretas_camadas(estado.white, estado.blacks, estado.fullboard, [1])
-        v = 1 if nc1 == npc1 else 0
+        v = 10 if nc1 == npc1 else 0
         if dicScoresOut!=None: dicScoresOut['num_pretas_camadas 1'] = v
         score += v
         if nc1 != npc1:
@@ -304,6 +343,7 @@ def fun_aval_52(estado, jogador, dicScoresOut=None):
 specialOne = Jogador("SpecialOne",
                   lambda game, state:
                   alphabeta_cutoff_search_new(state,game,depth_for_all,eval_fn=fun_aval_52))
+
 
     
 def sample_jogaRastrosNN(jogadorA, jogadorB, nsec=1, njogos=10):
@@ -414,18 +454,18 @@ if __name__ == "__main__":
     
     ############# Tabuleiros ##########
     
-    random.seed(1234567)
-    s = """  12345678
-            1........
-            2........
-            3........
-            4........
-            5..o.....
-            6.@@.....
-            7........
-            8........"""
-    jogo_a_partir_de_posicao()
-    sys.exit(0)
+    # random.seed(1234567)
+    # s = """  12345678
+    #         1........
+    #         2........
+    #         3........
+    #         4........
+    #         5..o.....
+    #         6.@@.....
+    #         7........
+    #         8........"""
+    # jogo_a_partir_de_posicao()
+    # sys.exit(0)
     
     
     # s1 = """  12345678
